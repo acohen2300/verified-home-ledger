@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifiedHomeLedger | The Asset Vault</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --surface: #111111;
+            --border: #333333;
+            --text: #e0e0e0;
+            --text-dim: #888888;
+            --brand: #ffffff;
+            --accent: #00D18B; /* The "Money" Green */
+            --adaptive: #00A3FF; /* The "Tech" Blue */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* The Phone Container */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            max-height: 850px;
+            background-color: var(--bg);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 80px rgba(0,0,0,0.8);
+        }
+
+        /* UTILITIES */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.8s ease forwards; }
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.5px; color: white;}
+        p { color: var(--text-dim); line-height: 1.5; font-size: 14px; margin-top: 10px;}
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* SCREEN 1: SPLASH & BRANDING */
+        .screen-auth {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .logo-box { margin-bottom: 40px; }
+        .brand-title { font-size: 28px; margin-bottom: 5px; }
+        .brand-subtitle { color: var(--accent); font-size: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+
+        .hero-text { margin-bottom: 40px; border-left: 2px solid var(--accent); padding-left: 15px; }
+
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-field {
+            width: 100%; background: transparent; border: none;
+            border-bottom: 1px solid var(--border); padding: 15px 0;
+            color: white; font-size: 18px; outline: none; transition: 0.3s;
+        }
+        .input-field:focus { border-bottom-color: var(--accent); }
+
+        .lock-btn {
+            margin-top: 20px; padding: 18px;
+            background: var(--surface); border: 1px solid var(--border);
+            color: white; width: 100%; text-align: center;
+            border-radius: 4px; cursor: pointer; transition: 0.3s; font-weight: 600;
+        }
+        .lock-btn:hover { background: #222; }
+
+        /* SCREEN 2: THE BUILDER */
+        .screen-builder { height: 100%; display: flex; flex-direction: column; }
+        
+        .builder-viz {
+            flex: 1; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            display: flex; justify-content: center; align-items: center;
+            position: relative; border-bottom: 1px solid var(--border);
+        }
+
+        /* 3D House CSS */
+        .house-model {
+            width: 120px; height: 120px;
+            border: 2px solid #444; position: relative;
+            transform: rotateX(15deg) rotateY(25deg); transform-style: preserve-3d;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .house-roof {
+            position: absolute; top: -60px; left: -12px;
+            width: 0; height: 0; 
+            border-left: 72px solid transparent; border-right: 72px solid transparent;
+            border-bottom: 60px solid #444; transition: 0.5s;
+        }
+
+        .builder-inputs { flex: 1; padding: 30px; background: var(--bg); }
+        .data-row { margin-bottom: 25px; opacity: 0.4; transition: 0.3s; }
+        .data-row.active { opacity: 1; }
+
+        .toggle-switch { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+        .toggle-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;}
+        
+        .slider {
+            width: 40px; height: 4px; background: #333;
+            position: relative; cursor: pointer; transition: 0.3s;
+        }
+        .slider::after {
+            content: ''; position: absolute; top: -6px; left: 0;
+            width: 16px; height: 16px; background: #666;
+            transition: 0.3s;
+        }
+
+        /* Verified States */
+        .verified-active .slider { background: var(--accent); }
+        .verified-active .slider::after { left: 100%; transform: translateX(-100%); background: white; box-shadow: 0 0 10px var(--accent); }
+        
+        .house-model.verified { border-color: var(--accent); background: rgba(0, 209, 139, 0.1); box-shadow: 0 0 30px rgba(0, 209, 139, 0.15); }
+        .house-roof.verified { border-bottom-color: var(--adaptive); filter: drop-shadow(0 -10px 15px rgba(0, 163, 255, 0.3)); }
+
+        .finish-btn {
+            width: 100%; padding: 20px; background: var(--accent); color: #000;
+            border: none; margin-top: 20px; cursor: pointer; font-weight: 800; letter-spacing: 1px;
+        }
+
+        /* SCREEN 3: VALUE REVEAL */
+        .screen-value {
+            height: 100%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            background: #000;
+        }
+
+        .value-label { color: var(--text-dim); font-size: 12px; letter-spacing: 3px; margin-bottom: 15px; text-transform: uppercase;}
+        .value-number { font-size: 56px; font-weight: 800; color: white; margin-bottom: 10px; letter-spacing: -2px; }
+        
+        .delta-pill {
+            background: rgba(0,209,139,0.15); color: var(--accent);
+            padding: 10px 20px; border-radius: 4px; font-size: 16px; font-weight: 600;
+            border: 1px solid rgba(0,209,139,0.3); opacity: 0; 
+            transform: translateY(10px); transition: 0.5s;
+        }
+        .delta-pill.show { opacity: 1; transform: translateY(0); }
+
+        .friction-btn {
+            margin-top: 60px; padding: 15px 40px; background: transparent;
+            color: white; border: 1px solid white; cursor: pointer; opacity: 0;
+            font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .friction-btn.show { opacity: 1; animation: slideUp 0.5s ease forwards; }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="screen-1" class="screen-auth">
+        <div class="logo-box">
+            <div class="brand-title">VerifiedHomeLedger</div>
+            <div class="brand-subtitle">The Private Asset Vault</div>
+        </div>
+        
+        <div class="hero-text fade-in">
+            <h3>Public algorithms guess.</h3>
+            <p>Unlock the hidden equity of your private assets in a secure, verified vault.</p>
+        </div>
+
+        <div class="input-group slide-up">
+            <input type="text" class="input-field" placeholder="Enter Property Address">
+        </div>
+
+        <div class="lock-btn slide-up" onclick="goToBuilder()">
+            CLAIM MY LEDGER
+        </div>
+    </div>
+
+    <div id="screen-2" class="screen-builder hidden">
+        <div class="builder-viz">
+            <div class="house-model" id="house-box">
+                <div class="house-roof" id="house-roof"></div>
+            </div>
+        </div>
+        <div class="builder-inputs">
+            
+            <div class="data-row active">
+                <div style="font-weight:600; font-size: 18px; margin-bottom:5px;">Basement / Renovation</div>
+                <p style="margin:0 0 10px 0;">Finished SQFT not in tax records.</p>
+                <div class="toggle-switch" onclick="verifyStructure(this)">
+                    <span class="toggle-label">Verify Asset</span>
+                    <div class="slider"></div>
+                </div>
+            </div>
+
+            <div class="data-row active" style="margin-top: 30px;">
+                <div style="font-weight:600; font-size: 18px; margin-bottom:5px;">Energy & Tech</div>
+                <p style="margin:0 0 10px 0;">Solar, Battery, Smart Security.</p>
+                <div class="toggle-switch" onclick="verifyRoof(this)">
+                    <span class="toggle-label">Verify Asset</span>
+                    <div class="slider"></div>
+                </div>
+            </div>
+
+            <button class="finish-btn" onclick="goToValue()">CALCULATE VALUE</button>
+        </div>
+    </div>
+
+    <div id="screen-3" class="screen-value hidden">
+        <div class="value-label" id="val-label">PUBLIC ESTIMATE</div>
+        <div class="value-number" id="val-num">$850,000</div>
+        
+        <div id="loading-bar" style="width: 40px; height: 2px; background: #333; margin: 20px auto;"></div>
+
+        <div id="result-container"></div>
+    </div>
+
+</div>
+
+<script>
+    // NAVIGATION
+    function goToBuilder() {
+        document.getElementById('screen-1').classList.add('hidden');
+        document.getElementById('screen-2').classList.remove('hidden');
+        document.getElementById('screen-2').classList.add('fade-in');
+    }
+
+    function goToValue() {
+        document.getElementById('screen-2').classList.add('hidden');
+        document.getElementById('screen-3').classList.remove('hidden');
+        runSimulation();
+    }
+
+    // INTERACTION VISUALS
+    function verifyStructure(el) {
+        el.classList.toggle('verified-active');
+        document.getElementById('house-box').classList.toggle('verified');
+    }
+
+    function verifyRoof(el) {
+        el.classList.toggle('verified-active');
+        document.getElementById('house-roof').classList.toggle('verified');
+    }
+
+    // THE MONEY SHOT MATH
+    function runSimulation() {
+        const valNum = document.getElementById('val-num');
+        const valLabel = document.getElementById('val-label');
+        const loader = document.getElementById('loading-bar');
+        const container = document.getElementById('result-container');
+
+        // Delay for suspense
+        setTimeout(() => {
+            let start = 850000;
+            let end = 1250000;
+            let duration = 2500;
+            let startTime = null;
+
+            function animate(currentTime) {
+                if (!startTime) startTime = currentTime;
+                let progress = currentTime - startTime;
+                let pct = Math.min(progress / duration, 1);
+                
+                // Ease Out Expo
+                let ease = (pct === 1) ? 1 : 1 - Math.pow(2, -10 * pct);
+                
+                let currentVal = Math.floor(start + (end - start) * ease);
+                valNum.innerText = '$' + currentVal.toLocaleString();
+                
+                // Color shift during climb
+                if (pct > 0.5) valNum.style.color = '#00D18B';
+
+                if (progress < duration) {
+                    window.requestAnimationFrame(animate);
+                } else {
+                    // FINAL STATE
+                    valLabel.innerText = "VERIFIED LEDGER VALUE";
+                    valLabel.style.color = "#00D18B";
+                    loader.style.display = 'none';
+
+                    // DELTA PILL
+                    const pill = document.createElement('div');
+                    pill.className = 'delta-pill show';
+                    pill.innerHTML = "▲ $400,000 UNLOCKED";
+                    container.appendChild(pill);
+
+                    // FRICTION BUTTON
+                    const btn = document.createElement('button');
+                    btn.className = 'friction-btn show';
+                    btn.innerText = "VERIFY OWNERSHIP TO LOCK";
+                    container.appendChild(btn);
+                }
+            }
+            window.requestAnimationFrame(animate);
+
+        }, 800);
+    }
+</script>
+</body>
+</html>
